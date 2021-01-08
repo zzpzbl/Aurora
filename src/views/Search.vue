@@ -79,7 +79,15 @@
               class="current-image"
             />
           </div>
-          <div class="images-container"></div>
+          <div class="thumbs-container">
+            <img
+              v-for="thumb in thumbs"
+              :key="thumb.name"
+              :src="`data:image/png;base64,${thumb.thumb.data}`"
+              class="thumb"
+              @click="selectNewImage(thumb.name)"
+            />
+          </div>
         </div>
         <div class="keogram-container">
           <img
@@ -150,6 +158,8 @@
 </template>
 
 <script>
+import { getThumb, getImageByName } from "../api/search";
+
 export default {
   name: "AuSearch",
   data() {
@@ -163,9 +173,11 @@ export default {
       },
       imageForm: {
         image: null,
+        raw: null,
       },
       currentImage: null,
       types: ["多重弧", "帷幔型冕状", "放射型冕状", "热点型极光"],
+      thumbs: [],
     };
   },
   methods: {
@@ -174,18 +186,29 @@ export default {
       const endDate = new Date(this.timeForm.endDate);
       if (beginDate > endDate) {
         this.$message.error("起始时间应小于结束时间");
-      } else {
-        this.timeForm.beginDate = `${beginDate.getFullYear()}${String(
-          beginDate.getMonth() + 1
-        ).padStart(2, "0")}${String(beginDate.getDate()).padStart(
-          2,
-          "0"
-        )}000000`;
-        this.timeForm.endDate = `${endDate.getFullYear()}${String(
-          endDate.getMonth() + 1
-        ).padStart(2, "0")}${String(endDate.getDate()).padStart(2)}235959`;
-        console.log(this.timeForm);
+        return;
       }
+
+      this.timeForm.beginDate = `${beginDate.getFullYear()}${String(
+        beginDate.getMonth() + 1
+      ).padStart(2, "0")}${String(beginDate.getDate()).padStart(2, "0")}000000`;
+      this.timeForm.endDate = `${endDate.getFullYear()}${String(
+        endDate.getMonth() + 1
+      ).padStart(2, "0")}${String(endDate.getDate()).padStart(2)}235959`;
+      console.log(this.timeForm);
+
+      const params = {
+        startTime: this.timeForm.beginDate,
+        endTime: this.timeForm.endDate,
+        band: this.timeForm.band,
+        manualtype: this.timeForm.type + 1,
+      };
+
+      getThumb(params)
+        .then((res) => {
+          console.log(res.data);
+        })
+        .catch((err) => console.error(err));
     },
     searchByImage() {
       if (this.imageForm.image) {
@@ -195,12 +218,21 @@ export default {
       }
     },
     handleImageChange(file) {
+      this.imageForm.raw = file.raw;
       const reader = new FileReader();
       reader.readAsDataURL(file.raw);
       reader.onload = (e) => {
         this.imageForm.image = e.target.result;
       };
     },
+    selectNewImage(name) {
+      console.log(name);
+      getImageByName(name)
+        .then((res) => {
+          console.log(res.data);
+        })
+        .catch((err) => console.error(err))
+    }
   },
 };
 </script>
@@ -332,10 +364,21 @@ export default {
   right: 0;
 }
 
-.images-container {
+.thumbs-container {
   border: 1px solid #e6e6e6;
   height: 100px;
   margin: 20px;
+  overflow-y: auto;
+  display: flex;
+}
+
+.thumbs-container::-webkit-scrollbar {
+  width: 2px;
+}
+
+.thumb {
+  width: 90px;
+  height: 90px;
 }
 
 .keogram-container {

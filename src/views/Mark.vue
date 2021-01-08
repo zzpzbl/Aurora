@@ -145,10 +145,6 @@ export default {
   font-size: 20px;
 }
 
-/* .mark-image-container {
-  max-width: 700px;
-} */
-
 .mark-form-card {
   flex: 3;
   min-width: 100px;
@@ -158,7 +154,12 @@ export default {
 }
 
 .type-radio {
-  display: block;
-  margin: 0 0 20px 0;
+  margin: 0 0 25px 0;
+}
+
+.el-form-item__content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 </style>
