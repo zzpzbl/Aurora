@@ -3,9 +3,6 @@
     default-active="search"
     class="au-nav"
     mode="horizontal"
-    background-color="#545c64"
-    text-color="#fff"
-    active-text-color="#ffd04b"
     @select="handleSelect"
   >
     <el-menu-item index="search">数据探索</el-menu-item>

@@ -19,5 +19,9 @@ export default {
 <style scoped>
 .title {
   margin: 0;
+  padding: 30px 20px;
+  font-family: "Helvetica Neue",Helvetica,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","微软雅黑",Arial,sans-serif;
+  font-weight: normal;
+  border-bottom: 1px solid #efefef;
 }
 </style>
