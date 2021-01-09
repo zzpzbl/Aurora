@@ -13,5 +13,9 @@ export function getKeogram(params) {
 }
 
 export function getSimilarByImage(image) {
-  return axios.post('/feature/get', image);
+  // console.log('image', image);
+  const formData = new FormData();
+  formData.append('file', image);
+  console.log(formData);
+  return axios.post('/feature/get', formData, {headers: {'Content-Type': 'multipart/form-data'}});
 }

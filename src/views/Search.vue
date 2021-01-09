@@ -110,20 +110,14 @@
       </div>
       <div class="image-result" v-show="activeMethod === 'image'">
         <div class="similar" v-for="image in similarImages" :key="image.name">
-          <div class="similar-image-conatiner">
-            <img :src="`data:image/png;base64,${image.rawpic.data}`" alt="相似图片">
-          </div>
-          <p class="similar-info">image.name</p>
-          <p class="similar-info">相似度：12</p>
-        </div>
-        <div class="similar">
           <div class="similar-image-container">
             <img
-              src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAtwC3AAD//gA7Q1JFQVRPUjogZ2QtanBlZyB2MS4wICh1c2luZyBJSkcgSlBFRyB2OTApLCBxdWFsaXR5ID0gODYK/9sAQwAQCwwODAoQDg0OEhEQExgnGRgWFhgwIiQcJzkyPDs4Mjc2P0daTD9DVUQ2N05rT1VdYGVmZT1Lb3duYnZaY2Vh/9sAQwEREhIYFRguGRkuYUE3QWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh/8AAEQgBaAFoAwEiAAIRAQMRAf/EABYAAQEBAAAAAAAAAAAAAAAAAAABBv/EAB0QAQACAwEBAQEAAAAAAAAAAAABETFBYXEhgbH/xAAWAQEBAQAAAAAAAAAAAAAAAAAAAQL/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwDBAI0AABo4AAAqACoAAAAYAAAF0gKgACgICggqAKhIBYACoBIACooIAATwAOgAAAAABAAHoAeooBgAAAAAAAANAG1QAAAAADwAkAAAAIAAADoAZACTwAAAAAAARRAWxFAEUEUAAAALAKAA+AAAABwAkAAAAAAAAAAADJ0AAAAACADIAAAAAIAAqKCEqgAoAIoIqKAAAAB6AB9AuQPgAAAHy1QAAAAAAAAAAAAAgDYAIApoAABAAAyAKgAqKCKiggoAGCgAAAqgAAAAAAAAAAAAAAADQH4ZAAAA2SgKAACAoAIAAAAtoAKigiooIpAAIoAICgAAAAABYAAKACAABAdAAAAAAAABBaQFAAABAAABAAAAUAA0KAAACKAAAAAAAAAAKEABoAQAAAAABF4ACKgAoCCoAAAAqACAAAAAAKAAqACgAAAAAAAAZFIAAAALAQAAAAABBUAAAAAAAAAAVARUABQAQCAAVFFRRAURQAAAAP6AAAKBsAAAAEAAAAAAQAABQAAAAAARUEAAFAEUAAAABVQAWwAAEAAANCgAABCKAAACCKAAABYACAAKAAAAAAIAIAoIACwigIoAfQBQABUAFQBQAA4AAAAAAAAAAACAKCAAAqAAAABkAAEAEFQAW0AUQBQQFEUAAUABUVAFEAVFAEUAAAEBQAAAQAFQAAAAAAAAAAAQAQAAVAAVAAAFRQABQAAAAAFEAUAARQEVAUQBUAAAAAAAAAAAAAAARAAAAAAAAIVABUAURQBFAAFD0AAAAAFQAAAAAAAAAAAAAAAAEAQFABAAAAAAFQAAAAAAAVFAQUAAUEUAAAJAAAAAAAAAAQFABFTIIAoCKgAoCAAAAAAAAAAAAAAAAqAAogKCAoACKAAAAAIKAIAoigiiSCiAAKCAAoAIAAAAAAAAAAAAAAAAAAAAogCoAKgCoAKioAACiACoACoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACggAKIoIqAKgAKgAAACggAAAAAAAAAAAAAAAAAAAAAAAKgAAAKgAAAAAAAAAAAAAKgAACoAAAAAAAAAAAASAAAAAAAAAAAAAAAAAAAACoAAAKgAAAAAqAAAACgCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD/9k="
+              :src="`data:image/png;base64,${image.rawpic.data}`"
+              alt="相似图片"
             />
           </div>
-          <p class="similar-info">N031221G000006</p>
-          <p class="similar-info">相似度：12</p>
+          <p class="similar-info">{{ image.name }}</p>
+          <p class="similar-info">相似度：{{ similarImageNames.difference }}</p>
         </div>
       </div>
     </div>
@@ -131,7 +125,13 @@
 </template>
 
 <script>
-import { getThumb, getImageByName, getKeogram, getSimilarByImage } from "../api/search";
+import {
+  getThumb,
+  getImageByName,
+  getKeogram,
+  getSimilarByImage,
+} from "../api/search";
+import { verify } from '../util/verifyImageName';
 
 export default {
   name: "AuSearch",
@@ -153,8 +153,11 @@ export default {
       types: ["不限", "多重弧", "帷幔型冕状", "放射型冕状", "热点型极光"],
       thumbs: [],
       currentThumbIndex: 0,
-      similarImageNames: [],
-      similarImages: [] // 每次得到图片往里面push
+      similarImageNames: {
+        nameList: [],
+        difference: 0,
+      },
+      similarImages: [], // 每次得到图片往里面push
     };
   },
   methods: {
@@ -214,26 +217,42 @@ export default {
           this.restoreTimeForm();
           this.currentImage = null;
           if (this.thumbs.length) {
-            setTimeout(() => this.selectNewImage(null, this.thumbs[0].name), 300)
+            setTimeout(
+              () => this.selectNewImage(null, this.thumbs[0].name),
+              300
+            );
           }
         })
         .catch((err) => console.error(err));
     },
     searchByImage() {
       if (this.imageForm.image) {
-        getSimilarByImage(this.imageForm.raw)
-          .then((res) => {
-            // resultCode: 500
-            console.log('查找相似', res.data);
-            this.similarImageNames = res.data.data;
-            console.log(this.similarImageNames);
-          })
+        getSimilarByImage(this.imageForm.raw).then((res) => {
+          // resultCode: 500
+          // console.log('查找相似', res.data);
+          this.similarImageNames = res.data.data;
+          console.log(res.data, "这是相似图片");
+          this.similarImageNames.nameList.forEach((name) => {
+            getImageByName(name)
+              .then((res) => {
+                this.similarImages.push(res.data.data);
+              })
+              .catch((err) => console.error(err));
+          });
+          // console.log(this.similarImageNames);
+        });
       } else {
         this.$message.error("请选择图片");
       }
     },
     handleImageChange(file) {
+      // console.log("file info", file);
       this.imageForm.raw = file.raw;
+      if (!verify(file.name)) {
+        this.$message.error("文件名不符合规范");
+        return;
+      }
+
       const reader = new FileReader();
       reader.readAsDataURL(file.raw);
       reader.onload = (e) => {
@@ -250,7 +269,9 @@ export default {
         });
         e.target.classList.add("active");
       } else {
-        this.$refs.thumbs.children[this.currentThumbIndex].classList.add('active');
+        this.$refs.thumbs.children[this.currentThumbIndex].classList.add(
+          "active"
+        );
         // 未知错误
         // console.log(this.$refs.thumbs.children);
         // console.log(this.$refs.thumbs.children[0]);
@@ -265,14 +286,18 @@ export default {
     },
     handleLeftClick() {
       if (this.currentThumbIndex > 0) {
-        this.$refs.thumbs.children[this.currentThumbIndex].classList.remove('active');
+        this.$refs.thumbs.children[this.currentThumbIndex].classList.remove(
+          "active"
+        );
         this.currentThumbIndex--;
         this.selectNewImage(null, this.thumbs[this.currentThumbIndex].name);
       }
     },
     handleRightClick() {
       if (this.currentThumbIndex < this.thumbs.length - 1) {
-        this.$refs.thumbs.children[this.currentThumbIndex].classList.remove('active');
+        this.$refs.thumbs.children[this.currentThumbIndex].classList.remove(
+          "active"
+        );
         this.currentThumbIndex++;
         this.selectNewImage(null, this.thumbs[this.currentThumbIndex].name);
       }
