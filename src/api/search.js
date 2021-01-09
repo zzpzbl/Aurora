@@ -11,3 +11,7 @@ export function getImageByName(name) {
 export function getKeogram(params) {
   return axios.get('/keogram/find', {params});
 }
+
+export function getSimilarByImage(image) {
+  return axios.post('/feature/get', image);
+}
