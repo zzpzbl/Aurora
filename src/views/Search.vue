@@ -18,11 +18,12 @@
             ></el-date-picker
           ></el-form-item>
           <el-form-item label="波段">
-            <el-radio-group v-model="timeForm.band">
-              <el-radio-button label="G"></el-radio-button>
-              <el-radio-button label="V"></el-radio-button>
-              <el-radio-button label="R"></el-radio-button></el-radio-group
-          ></el-form-item>
+            <el-checkbox-group v-model="timeForm.band" :min="0" :max="1">
+              <el-checkbox-button label="G">G</el-checkbox-button>
+              <el-checkbox-button label="V">V</el-checkbox-button>
+              <el-checkbox-button label="R">R</el-checkbox-button>
+            </el-checkbox-group></el-form-item
+          >
           <el-form-item label="类型">
             <el-select v-model="timeForm.type" placeholder="请选择">
               <el-option
@@ -67,31 +68,41 @@
       <div class="time-result" v-show="activeMethod === 'time'">
         <div class="image-container">
           <div class="current-image-container">
-            <div id="left-button" class="control-button">
+            <div
+              id="left-button"
+              @click="handleLeftClick"
+              class="control-button"
+            >
               <i class="el-icon-arrow-left"></i>
             </div>
-            <div id="right-button" class="control-button">
+            <div
+              id="right-button"
+              @click="handleRightClick"
+              class="control-button"
+            >
               <i class="el-icon-arrow-right"></i>
             </div>
             <img
-              src="https://ss3.bdstatic.com/70cFv8Sh_Q1YnxGkpoWK1HF6hhy/it/u=1329314336,1703660449&fm=26&gp=0.jpg"
+              v-show="currentImage"
+              ref="currentImage"
               alt="查询结果图片"
               class="current-image"
             />
           </div>
-          <div class="thumbs-container">
+          <div class="thumbs-container" ref="thumbs">
             <img
-              v-for="thumb in thumbs"
+              v-for="(thumb, index) in thumbs"
               :key="thumb.name"
               :src="`data:image/png;base64,${thumb.thumb.data}`"
               class="thumb"
-              @click="selectNewImage(thumb.name)"
+              @click="selectNewImage($event, thumb.name, index)"
             />
           </div>
         </div>
         <div class="keogram-container">
           <img
-            src="https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=2006651127,2585315559&fm=26&gp=0.jpg"
+            v-show="currentKeogram"
+            ref="currentKeogram"
             class="keogram-image"
             alt="keogram"
           />
@@ -158,7 +169,7 @@
 </template>
 
 <script>
-import { getThumb, getImageByName } from "../api/search";
+import { getThumb, getImageByName, getKeogram } from "../api/search";
 
 export default {
   name: "AuSearch",
@@ -166,9 +177,9 @@ export default {
     return {
       activeMethod: "time",
       timeForm: {
-        beginDate: "",
-        endDate: "",
-        band: "G",
+        beginDate: new Date("2003-12-01"),
+        endDate: new Date("2003-12-31"),
+        band: [],
         type: 0,
       },
       imageForm: {
@@ -176,11 +187,18 @@ export default {
         raw: null,
       },
       currentImage: null,
-      types: ["多重弧", "帷幔型冕状", "放射型冕状", "热点型极光"],
+      currentKeogram: null,
+      types: ["不限", "多重弧", "帷幔型冕状", "放射型冕状", "热点型极光"],
       thumbs: [],
+      currentThumbIndex: 0
     };
   },
   methods: {
+    restoreTimeForm() {
+      this.timeForm.beginDate = new Date("2003-12-01");
+      this.timeForm.endDate = new Date("2003-12-31");
+      // this.timeForm.band = [];
+    },
     searchByTime() {
       const beginDate = new Date(this.timeForm.beginDate);
       const endDate = new Date(this.timeForm.endDate);
@@ -188,6 +206,8 @@ export default {
         this.$message.error("起始时间应小于结束时间");
         return;
       }
+
+      this.currentKeogram = null;
 
       this.timeForm.beginDate = `${beginDate.getFullYear()}${String(
         beginDate.getMonth() + 1
@@ -200,13 +220,33 @@ export default {
       const params = {
         startTime: this.timeForm.beginDate,
         endTime: this.timeForm.endDate,
-        band: this.timeForm.band,
-        manualtype: this.timeForm.type + 1,
+        manualtype: this.timeForm.type,
       };
+
+      if (this.timeForm.band[0]) {
+        params.band = this.timeForm.band[0];
+      }
+
+      // console.log("params", params);
+
+      getKeogram(params)
+        .then((res) => {
+          // console.log("keogram", res.data.data);
+          this.currentKeogram = res.data.data;
+          this.$refs.currentKeogram.src = `data:image/png;base64,${this.currentKeogram}`;
+        })
+        .catch((err) => console.error(err));
 
       getThumb(params)
         .then((res) => {
-          console.log(res.data);
+          this.thumbs = res.data.data;
+          // console.log(this.thumbs);
+          // 还原 查询表单和当前大图
+          this.restoreTimeForm();
+          this.currentImage = null;
+          if (this.thumbs.length) {
+            setTimeout(() => this.selectNewImage(null, this.thumbs[0].name), 300)
+          }
         })
         .catch((err) => console.error(err));
     },
@@ -225,14 +265,43 @@ export default {
         this.imageForm.image = e.target.result;
       };
     },
-    selectNewImage(name) {
-      console.log(name);
+    selectNewImage(e, name, index) {
+      // console.log(name, e);
+      if (e) {
+        this.currentThumbIndex = index;
+        // console.log(this.$refs.thumbs.children);
+        this.$refs.thumbs.children.forEach((element) => {
+          element.classList.remove("active");
+        });
+        e.target.classList.add("active");
+      } else {
+        this.$refs.thumbs.children[this.currentThumbIndex].classList.add('active');
+        // 未知错误
+        // console.log(this.$refs.thumbs.children);
+        // console.log(this.$refs.thumbs.children[0]);
+      }
       getImageByName(name)
         .then((res) => {
-          console.log(res.data);
+          this.currentImage = res.data.data;
+          console.log(this.currentImage);
+          this.$refs.currentImage.src = `data:image/png;base64,${this.currentImage.rawpic.data}`;
         })
-        .catch((err) => console.error(err))
-    }
+        .catch((err) => console.error(err));
+    },
+    handleLeftClick() {
+      if (this.currentThumbIndex > 0) {
+        this.$refs.thumbs.children[this.currentThumbIndex].classList.remove('active');
+        this.currentThumbIndex--;
+        this.selectNewImage(null, this.thumbs[this.currentThumbIndex].name);
+      }
+    },
+    handleRightClick() {
+      if (this.currentThumbIndex < this.thumbs.length - 1) {
+        this.$refs.thumbs.children[this.currentThumbIndex].classList.remove('active');
+        this.currentThumbIndex++;
+        this.selectNewImage(null, this.thumbs[this.currentThumbIndex].name);
+      }
+    },
   },
 };
 </script>
@@ -325,6 +394,7 @@ export default {
   margin: 20px;
   border: 1px solid #e6e6e6;
   min-width: 400px;
+  max-width: 883px;
   text-align: center;
 }
 
@@ -365,20 +435,40 @@ export default {
 }
 
 .thumbs-container {
+  box-sizing: border-box;
+  width: 100%;
   border: 1px solid #e6e6e6;
   height: 100px;
-  margin: 20px;
-  overflow-y: auto;
+  padding: 5px;
+  overflow: auto;
   display: flex;
 }
 
 .thumbs-container::-webkit-scrollbar {
-  width: 2px;
+  width: 10px;
+  height: 5px;
+}
+
+.thumbs-container::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+  background: #535353;
+}
+
+.thumbs-container::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  background: #e6e6e6;
 }
 
 .thumb {
   width: 90px;
-  height: 90px;
+  object-fit: contain;
+  margin-right: 5px;
+}
+
+.thumb.active {
+  box-shadow: 0 0 0 3px #aaa;
 }
 
 .keogram-container {
@@ -386,10 +476,19 @@ export default {
   min-width: 100px;
   margin: 20px 20px 20px 0;
   border: 1px solid #e6e6e6;
+  /* position: relative;
+  top: 150px; */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
 }
 
 .keogram-image {
-  object-fit: container;
-  width: 100%;
+  object-fit: contain;
+  /* width: 100%; */
+  height: 100%;
+  max-height: 400px;
+  display: block;
 }
 </style>
