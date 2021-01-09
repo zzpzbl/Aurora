@@ -28,6 +28,7 @@
 </template>
 
 <script>
+import { uploadNewImage } from '../api/upload'
 export default {
   name: 'AuImport',
   data() {
@@ -41,7 +42,11 @@ export default {
   methods: {
     submitNewImage() {
       if (this.imageForm.image) {
-        console.log(this.imageForm);
+        uploadNewImage(this.imageForm.raw)
+          .then(() => {
+            this.$message.success('上传成功');
+          })
+          .catch(err => console.error(err));
       } else {
         this.$message.error("请选择图片");
       }
