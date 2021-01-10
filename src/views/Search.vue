@@ -131,7 +131,7 @@ import {
   getKeogram,
   getSimilarByImage,
 } from "../api/search";
-import { verify } from '../util/verifyImageName';
+import { verify } from "../util/verifyImageName";
 
 export default {
   name: "AuSearch",
@@ -195,8 +195,8 @@ export default {
         // manualtype: this.timeForm.type,
       };
 
-      if (this.timeForm.manualtype !== '0') {
-        parmas.manualtype = this.timeForm.manualtype;
+      if (this.timeForm.manualtype !== "0") {
+        params.manualtype = this.timeForm.manualtype;
       }
 
       if (this.timeForm.band[0]) {
@@ -251,11 +251,11 @@ export default {
     },
     handleImageChange(file) {
       // console.log("file info", file);
-      this.imageForm.raw = file.raw;
       if (!verify(file.name)) {
         this.$message.error("文件名不符合规范");
         return;
       }
+      this.imageForm.raw = file.raw;
 
       const reader = new FileReader();
       reader.readAsDataURL(file.raw);

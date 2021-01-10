@@ -143,7 +143,7 @@ export default {
       };
 
       if (this.timeForm.manualtype !== '0') {
-        parmas.manualtype = this.timeForm.manualtype;
+        params.manualtype = this.timeForm.manualtype;
       }
 
       if (this.timeForm.band[0]) {

@@ -28,7 +28,9 @@
 </template>
 
 <script>
-import { uploadNewImage } from '../api/upload'
+import { uploadNewImage } from '../api/upload';
+import { verify } from '../util/verifyImageName';
+
 export default {
   name: 'AuImport',
   data() {
@@ -52,7 +54,11 @@ export default {
       }
     },
     handleImageChange(file) {
-      console.log(file.raw);
+      if (!verify(file.name)) {
+        this.$message.error("文件名不符合规范");
+        return;
+      }
+      // console.log(file.raw);
       this.imageForm.raw = file.raw;
       const reader = new FileReader();
       reader.readAsDataURL(file.raw);
