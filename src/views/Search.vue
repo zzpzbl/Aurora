@@ -93,7 +93,7 @@
             <img
               v-for="(thumb, index) in thumbs"
               :key="thumb.name"
-              :src="`data:image/png;base64,${thumb.thumb.data}`"
+              :src="`data:image/png;base64,${thumb.thumb}`"
               class="thumb"
               @click="selectNewImage($event, thumb.name, index)"
             />
@@ -132,6 +132,8 @@ import {
   getSimilarByImage,
 } from "../api/search";
 import { verify } from "../util/verifyImageName";
+// import {Base64} from 'js-base64'
+// Vue.use(Base64);
 
 export default {
   name: "AuSearch",
@@ -195,31 +197,35 @@ export default {
         // manualtype: this.timeForm.type,
       };
 
-      if (this.timeForm.manualtype !== "0") {
-        params.manualtype = this.timeForm.manualtype;
+      if (this.timeForm.type !== "0") {
+        console.log("type: " + this.timeForm.type);
+        params.manualtype = this.timeForm.type;
       }
 
       if (this.timeForm.band[0]) {
         params.band = this.timeForm.band[0];
       }
 
-      // console.log("params", params);
+      console.log("params", params);
 
       getKeogram(params)
         .then((res) => {
-          // console.log("keogram", res.data.data);
-          this.currentKeogram = res.data.data;
+          // console.log("keogram", res.data);
+          this.currentKeogram = res.data.keogram;
+          // console.log("base64:" + Base64.decode(res.data.keogram));
           this.$refs.currentKeogram.src = `data:image/png;base64,${this.currentKeogram}`;
         })
         .catch((err) => console.error(err));
 
       getThumb(params)
         .then((res) => {
-          this.thumbs = res.data.data;
-          // console.log(this.thumbs);
+          // console.log("ret: " + res.data);
+          this.thumbs = res.data;
+          // console.log(this.thumb[0]);
           // 还原 查询表单和当前大图
           this.restoreTimeForm();
           this.currentImage = null;
+          console.log("name:" + this.thumbs[0].name);
           if (this.thumbs.length) {
             setTimeout(
               () => this.selectNewImage(null, this.thumbs[0].name),
@@ -274,18 +280,20 @@ export default {
         });
         e.target.classList.add("active");
       } else {
+        // console.log("拿到名字了");
         this.$refs.thumbs.children[this.currentThumbIndex].classList.add(
           "active"
         );
+        // console.log("拿到名字了");
         // 未知错误
         // console.log(this.$refs.thumbs.children);
         // console.log(this.$refs.thumbs.children[0]);
       }
       getImageByName(name)
         .then((res) => {
-          this.currentImage = res.data.data;
-          console.log(this.currentImage);
-          this.$refs.currentImage.src = `data:image/png;base64,${this.currentImage.rawpic.data}`;
+          this.currentImage = res.data.image;
+          // console.log(this.currentImage);
+          this.$refs.currentImage.src = `data:image/png;base64,${this.currentImage}`;
         })
         .catch((err) => console.error(err));
     },

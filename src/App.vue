@@ -1,18 +1,23 @@
 <template>
   <div id="app">
     <au-header></au-header>
-    <router-view></router-view>
+    <main>
+      <au-nav></au-nav>
+      <router-view></router-view>
+    </main>
   </div>
 </template>
 
 <script>
-// import Home from './views/Home.vue'
+
 import AuHeader from './components/Header'
+import AuNav from './components/Nav'
 
 export default {
-  name: 'app',
+  name: 'App',
   components: {
-    AuHeader
+    AuHeader,
+    AuNav
   }
 }
 </script>
@@ -28,5 +33,10 @@ export default {
   margin: 0 auto;
   background: #fff;
   position: relative;
+}
+
+main {
+  display: flex;
+  /* justify-content:  */
 }
 </style>

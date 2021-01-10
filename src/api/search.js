@@ -1,15 +1,18 @@
 import axios from './index'
 
 export function getThumb(params) {
-  return axios.get('/Thumb/find', {params});
+  console.log("start: " + params.startTime);
+  console.log("end: " + params.endTime);
+  return axios.get('/aurora/thumb', {params});
 }
 
 export function getImageByName(name) {
-  return axios.get('/image/find', {params:{name}});
+  return axios.get('/aurora/image/name/' + name);
 }
 
 export function getKeogram(params) {
-  return axios.get('/keogram/find', {params});
+  console.log("555");
+  return axios.get('/aurora/keogram', {params});
 }
 
 export function getSimilarByImage(image) {
