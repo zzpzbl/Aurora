@@ -1,7 +1,7 @@
 <template>
   <div class="au-search">
     <el-tabs type="border-card" v-model="activeMethod">
-      <el-tab-pane label="时间查询" name="time"
+      <el-tab-pane label="条件查询" name="time"
         ><el-form :model="timeForm" label-width="70px" label-position="left">
           <el-form-item label="起始时间">
             <el-date-picker
@@ -39,7 +39,7 @@
           ></el-form
         ></el-tab-pane
       >
-      <el-tab-pane label="原图查询" name="image">
+      <el-tab-pane label="相似查询" name="image">
         <el-form :model="imageForm" label-width="70px" label-position="top">
           <el-form-item>
             <el-upload
@@ -175,7 +175,7 @@ export default {
       ).padStart(2, "0")}${String(beginDate.getDate()).padStart(2, "0")}000000`;
       this.timeForm.endDate = `${endDate.getFullYear()}${String(
         endDate.getMonth() + 1
-      ).padStart(2, "0")}${String(endDate.getDate()).padStart(2)}235959`;
+      ).padStart(2, "0")}${String(endDate.getDate()).padStart(2, '0')}235959`;
 
       console.log(this.timeForm.beginDate);
       console.log(this.timeForm.endDate);
@@ -236,6 +236,7 @@ export default {
           // console.log('查找相似', res.data);
           this.similarImageNames = res.data.data;
           console.log(res.data, "这是相似图片");
+          this.similarImages = [];
           this.similarImageNames.nameList.forEach((name) => {
             getImageByName(name)
               .then((res) => {

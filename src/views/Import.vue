@@ -45,7 +45,8 @@ export default {
     submitNewImage() {
       if (this.imageForm.image) {
         uploadNewImage(this.imageForm.raw)
-          .then(() => {
+          .then((res) => {
+            console.log(res.data, '上传返回信息');
             this.$message.success('上传成功');
           })
           .catch(err => console.error(err));

@@ -134,7 +134,7 @@ export default {
       ).padStart(2, "0")}${String(beginDate.getDate()).padStart(2, "0")}000000`;
       this.timeForm.endDate = `${endDate.getFullYear()}${String(
         endDate.getMonth() + 1
-      ).padStart(2, "0")}${String(endDate.getDate()).padStart(2)}235959`;
+      ).padStart(2, "0")}${String(endDate.getDate()).padStart(2, '0')}235959`;
       console.log(this.timeForm);
 
       const params = {
