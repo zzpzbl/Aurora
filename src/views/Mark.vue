@@ -140,8 +140,11 @@ export default {
       const params = {
         startTime: this.timeForm.beginDate,
         endTime: this.timeForm.endDate,
-        manualtype: this.timeForm.type,
       };
+
+      if (this.timeForm.manualtype !== '0') {
+        parmas.manualtype = this.timeForm.manualtype;
+      }
 
       if (this.timeForm.band[0]) {
         params.band = this.timeForm.band[0];
