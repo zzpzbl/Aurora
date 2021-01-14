@@ -109,15 +109,15 @@
         </div>
       </div>
       <div class="image-result" v-show="activeMethod === 'image'">
-        <div class="similar" v-for="image in similarImages" :key="image.name">
+        <div class="similar" v-for="element in similarImageNames" :key="element.name">
           <div class="similar-image-container">
             <img
-              :src="`data:image/png;base64,${image.rawpic.data}`"
+              :src="`data:image/png;base64,${element.image}`"
               alt="相似图片"
             />
           </div>
-          <p class="similar-info">{{ image.name }}</p>
-          <p class="similar-info">相似度：{{ similarImageNames.difference }}</p>
+          <p class="similar-info">{{ element.name }}</p>
+          <p class="similar-info">相似度：{{ element.similarity }}</p>
         </div>
       </div>
     </div>
@@ -155,11 +155,8 @@ export default {
       types: ["不限", "多重弧", "帷幔型冕状", "放射型冕状", "热点型极光"],
       thumbs: [],
       currentThumbIndex: 0,
-      similarImageNames: {
-        nameList: [],
-        difference: 0,
-      },
-      similarImages: [], // 每次得到图片往里面push
+      similarImageNames: [
+      ],
     };
   },
   methods: {
@@ -192,8 +189,8 @@ export default {
       console.log(this.timeForm);
 
       const params = {
-        startTime: this.timeForm.beginDate,
-        endTime: this.timeForm.endDate,
+        start: this.timeForm.beginDate,
+        end: this.timeForm.endDate,
         // manualtype: this.timeForm.type,
       };
 
@@ -239,18 +236,31 @@ export default {
       if (this.imageForm.image) {
         getSimilarByImage(this.imageForm.raw).then((res) => {
           // resultCode: 500
-          // console.log('查找相似', res.data);
-          this.similarImageNames = res.data.data;
-          console.log(res.data, "这是相似图片");
-          this.similarImages = [];
-          this.similarImageNames.nameList.forEach((name) => {
-            getImageByName(name)
+          console.log('查找相似', res.data);
+          // for(let i = 0; i < res.data.length; i++) {
+
+          // }
+          res.data.forEach((name, index) => {
+            this.similarImageNames.push({
+              name: res.data[index].name, 
+              similarity: res.data[index].similarity,
+              image: null});
+          });
+          
+          console.log("length: " + this.similarImageNames.length);
+          // this.similarImageNames = res.data;
+          // console.log(res.data, "这是相似图片");
+          // console.log("array: " + this.similarImageNames.nameList);
+          this.similarImageNames.forEach((name, index) => {
+            getImageByName(name.name)
               .then((res) => {
-                this.similarImages.push(res.data.data);
+                // console.log("res.data: " + res.data.image);
+                // this.similarImages.push(res.data.image);
+                this.similarImageNames[index].image = res.data.image;
+                // console.log("images: ", this.similarImageNames);
               })
               .catch((err) => console.error(err));
           });
-          // console.log(this.similarImageNames);
         });
       } else {
         this.$message.error("请选择图片");

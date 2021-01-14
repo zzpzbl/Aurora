@@ -7,6 +7,7 @@ export function getThumb(params) {
 }
 
 export function getImageByName(name) {
+  // console.log("name:" + name);
   return axios.get('/aurora/image/name/' + name);
 }
 
@@ -16,11 +17,11 @@ export function getKeogram(params) {
 }
 
 export function getSimilarByImage(image) {
-  // console.log('image', image);
+  console.log('image', image);
   const formData = new FormData();
-  formData.append('file', image);
+  formData.append('pic', image);
   console.log(formData);
-  return axios.post('/feature/get', formData, {headers: {'Content-Type': 'multipart/form-data'}});
+  return axios.post('/aurora/feature', formData, {headers: {'Content-Type': 'multipart/form-data'}});
 }
 
 export function setImageType(params){
