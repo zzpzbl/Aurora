@@ -11,5 +11,8 @@ export default {
 </script>
 
 <style>
-
-</style>script
+h1 {
+  margin: 0;
+  padding: 20px;
+}
+</style>

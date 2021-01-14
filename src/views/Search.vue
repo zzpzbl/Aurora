@@ -289,6 +289,7 @@ export default {
         // console.log(this.$refs.thumbs.children);
         // console.log(this.$refs.thumbs.children[0]);
       }
+      console.log(name);
       getImageByName(name)
         .then((res) => {
           this.currentImage = res.data.image;

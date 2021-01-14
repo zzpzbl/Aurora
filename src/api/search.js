@@ -1,8 +1,8 @@
 import axios from './index'
 
 export function getThumb(params) {
-  console.log("start: " + params.startTime);
-  console.log("end: " + params.endTime);
+  console.log("start: " + params.start);
+  console.log("end: " + params.end);
   return axios.get('/aurora/thumb', {params});
 }
 
@@ -21,4 +21,8 @@ export function getSimilarByImage(image) {
   formData.append('file', image);
   console.log(formData);
   return axios.post('/feature/get', formData, {headers: {'Content-Type': 'multipart/form-data'}});
+}
+
+export function setImageType(params){
+  return axios.put('/aurora',params);
 }
